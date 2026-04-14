@@ -1,0 +1,194 @@
+# =============================================================================
+# Insurance Data Platform — Pipeline Configuration
+# =============================================================================
+#
+# TRAINEE GUIDE: This is the central configuration file for the entire ETL pipeline.
+# It is loaded at runtime by Python code (typically via PyYAML) so that pipeline
+# behaviour can be changed WITHOUT modifying source code.  When a notebook or
+# module calls `yaml.safe_load(open("config/pipeline_config.yaml"))`, every
+# key below becomes a Python dict entry the code can reference.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Unity Catalog settings
+# -----------------------------------------------------------------------------
+# Unity Catalog uses a three-level namespace:  catalog.schema.table
+# For example: insurance_catalog.bronze.property_claims
+# The "catalog" is the top-level container (like a database server), a "schema"
+# groups related tables (bronze/silver/gold layers), and each table lives inside
+# a schema.  This mirrors the Medallion Architecture used in Databricks.
+catalog:
+  name: "insurance_catalog"
+  schemas:
+    # Bronze: Raw data ingested as-is from source systems. No transformations.
+    #         Think of it as a "landing zone" — data fidelity is the priority.
+    bronze: "bronze"
+    # Silver: Cleansed, validated, and conformed data. Duplicates removed,
+    #         data types cast, quality rules applied. This is where most
+    #         analysts and data scientists query.
+    silver: "silver"
+    # Gold: Business-level aggregates and dimensional models (star schema).
+    #       Optimised for dashboards, KPIs, and reporting.
+    gold: "gold"
+
+# -----------------------------------------------------------------------------
+# Storage paths (DBFS / cloud storage)
+# -----------------------------------------------------------------------------
+# Paths beginning with /mnt/ are DBFS mount points.  A mount point maps a
+# cloud storage container (e.g., Azure Blob, AWS S3) to a local-looking path
+# inside Databricks so that Spark can read/write without explicit cloud URLs.
+#
+# Checkpoints are used by Structured Streaming (and Auto Loader).  They record
+# which files or offsets have already been processed so that the pipeline can
+# resume from the last successful point after a failure — this is how we get
+# exactly-once processing guarantees.
+storage:
+  raw_landing_zone: "/Volumes/insurance_catalog/bronze/raw_data"
+  bronze_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/bronze"
+  silver_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/silver"
+  gold_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/gold"
+
+# -----------------------------------------------------------------------------
+# Data source URLs
+# -----------------------------------------------------------------------------
+# These are PUBLIC data sources the pipeline can ingest from.
+#
+# FEMA NFIP (National Flood Insurance Program) — operated by the US Federal
+# Emergency Management Agency.  Provides real flood insurance policies and
+# claims data via the OpenFEMA API.
+#   - fema_nfip_claims:  Individual flood-damage claim records
+#   - fema_nfip_policies: Flood insurance policy details
+#   - fema_ihp_registrations: Individuals & Households Program assistance data
+#
+# CAS (Casualty Actuarial Society) Schedule P — industry benchmark loss
+# triangles used by actuaries.  Each CSV contains historical loss development
+# data for a specific line of business.
+#   - cas_workers_comp:    Workers Compensation loss triangles
+#   - cas_private_auto:    Private Passenger Auto loss triangles
+#   - cas_commercial_auto: Commercial Auto loss triangles
+#   - cas_other_liability: Other Liability (occurrence) loss triangles
+#   - cas_product_liability: Product Liability loss triangles
+data_sources:
+  fema_nfip_claims:
+    url: "https://www.fema.gov/api/open/v2/FimaNfipClaims"
+    bulk_csv: "https://www.fema.gov/about/openfema/data-sets#702d840c60fde93a0eb0ed648"
+    format: "csv"
+    lob: "property"
+  fema_nfip_policies:
+    url: "https://www.fema.gov/api/open/v2/FimaNfipPolicies"
+    bulk_csv: "https://www.fema.gov/about/openfema/data-sets#5dc893a4aec25b0e5b6a33be5"
+    format: "csv"
+    lob: "property"
+  fema_ihp_registrations:
+    url: "https://www.fema.gov/api/open/v2/IndividualsAndHouseholdsProgramValidRegistrations"
+    format: "json"
+    lob: "property"
+  cas_workers_comp:
+    url: "https://www.casact.org/sites/default/files/2021-04/wkcomp_pos.csv"
+    format: "csv"
+    lob: "workers_comp"
+  cas_private_auto:
+    url: "https://www.casact.org/sites/default/files/2021-04/ppauto_pos.csv"
+    format: "csv"
+    lob: "auto"
+  cas_commercial_auto:
+    url: "https://www.casact.org/sites/default/files/2021-04/comauto_pos.csv"
+    format: "csv"
+    lob: "auto"
+  cas_other_liability:
+    url: "https://www.casact.org/sites/default/files/2021-04/othliab_pos.csv"
+    format: "csv"
+    lob: "general_liability"
+  cas_product_liability:
+    url: "https://www.casact.org/sites/default/files/2021-04/prodliab_pos.csv"
+    format: "csv"
+    lob: "general_liability"
+
+# -----------------------------------------------------------------------------
+# Synthetic data generation settings
+# -----------------------------------------------------------------------------
+# When real data is not available (or for dev/test), the pipeline can generate
+# synthetic records.  Two modes are supported:
+#
+#   "local"      — Uses the Python Faker library.  Runs on a single machine,
+#                  so row counts are kept small (100K-ish) to finish quickly.
+#                  Great for unit testing and local development.
+#
+#   "databricks" — Uses dbldatagen (Databricks Labs Data Generator), which
+#                  runs on Spark and can produce hundreds of millions of rows
+#                  in parallel across a cluster.  Used for realistic load and
+#                  performance testing.
+#
+# The seed value (42) makes generated data reproducible across runs.
+synthetic:
+  # Mode: "local" (Faker, small) or "databricks" (dbldatagen, full scale)
+  mode: "databricks"
+  seed: 42
+  local:
+    property_rows: 100000
+    workers_comp_rows: 80000
+    auto_rows: 100000
+    general_liability_rows: 60000
+    umbrella_rows: 30000
+  databricks:
+    property_rows: 150000000
+    workers_comp_rows: 120000000
+    auto_rows: 130000000
+    general_liability_rows: 100000000
+    umbrella_rows: 50000000
+
+# -----------------------------------------------------------------------------
+# Lines of business (LOBs)
+# -----------------------------------------------------------------------------
+# Each LOB represents a distinct insurance product category.
+# The "naic_code" is the National Association of Insurance Commissioners
+# standard numeric code used in statutory filings (Annual Statement).
+# Insurers must report financials separately for each NAIC line of business,
+# which is why we partition data by LOB throughout the pipeline.
+lines_of_business:
+  - code: "PROP"          # Property — covers buildings, contents, flood damage
+    name: "Property"
+    naic_code: "04.0"     # NAIC Line 4.0: Homeowners Multiple Peril
+    category: "Property"
+  - code: "WC"            # Workers Compensation — covers employee workplace injuries
+    name: "Workers Compensation"
+    naic_code: "16.0"     # NAIC Line 16.0: Workers' Compensation
+    category: "Casualty"
+  - code: "AUTO"          # Auto — covers vehicle liability and physical damage
+    name: "Auto"
+    naic_code: "19.4"     # NAIC Line 19.4: Private Passenger Auto (Liability)
+    category: "Casualty"
+  - code: "GL"            # General Liability — covers third-party bodily injury / property damage
+    name: "General Liability"
+    naic_code: "17.0"     # NAIC Line 17.0: Other Liability
+    category: "Casualty"
+  - code: "UMB"           # Umbrella — excess liability sitting above underlying policies
+    name: "Umbrella"
+    naic_code: "17.3"     # NAIC Line 17.3: Excess (follow-form)
+    category: "Casualty"
+
+# -----------------------------------------------------------------------------
+# Spark settings
+# -----------------------------------------------------------------------------
+# These settings tune Apache Spark's execution engine inside Databricks.
+spark:
+  # shuffle_partitions: Number of partitions created during shuffle operations
+  # (joins, groupBys).  Default Spark value is 200.  Increase for large data,
+  # decrease for small data to avoid many tiny tasks.
+  shuffle_partitions: 200
+
+  # adaptive_enabled: Turns on Adaptive Query Execution (AQE).  AQE lets Spark
+  # dynamically adjust the query plan at runtime — e.g., coalescing small
+  # shuffle partitions, switching join strategies — leading to better
+  # performance without manual tuning.
+  adaptive_enabled: true
+
+  # delta_auto_optimize: Automatically optimises Delta Lake file sizes after
+  # writes.  Without this, many small files accumulate ("small file problem"),
+  # which slows reads dramatically.
+  delta_auto_optimize: true
+
+  # delta_auto_compact: Automatically triggers compaction of small Delta files
+  # into larger ones.  Works hand-in-hand with auto_optimize to keep the
+  # Delta table healthy and query-performant.
+  delta_auto_compact: true

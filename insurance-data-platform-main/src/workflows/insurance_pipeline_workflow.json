@@ -1,0 +1,134 @@
+{
+  "name": "insurance_etl_pipeline",
+  "description": "End-to-end Insurance Data Platform ETL: Bronze → Silver → Gold → Mart",
+  "max_concurrent_runs": 1,
+  "email_notifications": {
+    "on_failure": ["kokulakrishnan@comptivia.com"]
+  },
+  "schedule": {
+    "quartz_cron_expression": "0 0 2 * * ?",
+    "timezone_id": "America/New_York",
+    "pause_status": "PAUSED"
+  },
+  "job_clusters": [
+    {
+      "job_cluster_key": "etl_cluster",
+      "new_cluster": {
+        "spark_version": "14.3.x-scala2.12",
+        "node_type_id": "Standard_DS4_v2",
+        "num_workers": 8,
+        "spark_conf": {
+          "spark.sql.adaptive.enabled": "true",
+          "spark.sql.shuffle.partitions": "200",
+          "spark.databricks.delta.optimizeWrite.enabled": "true",
+          "spark.databricks.delta.autoCompact.enabled": "true"
+        },
+        "spark_env_vars": {
+          "PIPELINE_MODE": "databricks"
+        },
+        "custom_tags": {
+          "project": "insurance-data-platform",
+          "environment": "production"
+        }
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "task_key": "setup_catalog",
+      "description": "Create Unity Catalog, schemas, and initial configuration",
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/00_setup_catalog",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 600,
+      "max_retries": 1
+    },
+    {
+      "task_key": "run_ingestion",
+      "description": "Generate synthetic data, download public data, and run Bronze ingestion",
+      "depends_on": [{"task_key": "setup_catalog"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/01_run_ingestion",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "mode": "local"
+        }
+      },
+      "timeout_seconds": 7200,
+      "max_retries": 1
+    },
+    {
+      "task_key": "transform_all_silver",
+      "description": "Silver: Transform all 5 LOBs (Property, WC, Auto, GL, Umbrella)",
+      "depends_on": [{"task_key": "run_ingestion"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/04_run_silver",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 2
+    },
+    {
+      "task_key": "build_dimensions",
+      "description": "Gold: Build all 8 dimension tables",
+      "depends_on": [{"task_key": "transform_all_silver"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/05_build_gold_dimensions",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 1
+    },
+    {
+      "task_key": "build_facts",
+      "description": "Gold: Build all 3 fact tables",
+      "depends_on": [{"task_key": "build_dimensions"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/06_build_gold_facts",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 1
+    },
+    {
+      "task_key": "build_mart",
+      "description": "Gold: Build mart_policy_360 denormalized data mart",
+      "depends_on": [{"task_key": "build_facts"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/07_build_mart",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 1
+    },
+    {
+      "task_key": "validate_mart",
+      "description": "Run data quality validation on the final mart",
+      "depends_on": [{"task_key": "build_mart"}],
+      "job_cluster_key": "etl_cluster",
+      "notebook_task": {
+        "notebook_path": "/Users/kokulakrishnan@comptivia.com/insurance-data-platform/notebooks/03_mart_validation",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 1800,
+      "max_retries": 1
+    }
+  ],
+  "git_source": {
+    "git_url": "https://github.com/kokulakrishnan-comptivia/insurance-data-platform.git",
+    "git_provider": "gitHub",
+    "git_branch": "main"
+  },
+  "tags": {
+    "project": "insurance-data-platform",
+    "team": "data-engineering",
+    "domain": "insurance"
+  }
+}

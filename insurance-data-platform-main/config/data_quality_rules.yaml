@@ -1,0 +1,125 @@
+# =============================================================================
+# Data Quality Rules — Per LOB
+# =============================================================================
+
+common_rules:
+  - name: "policy_id_not_null"
+    column: "policy_id"
+    type: "not_null"
+  - name: "effective_date_valid"
+    column: "effective_date"
+    type: "date_range"
+    min_date: "1970-01-01"
+    max_date: "2030-12-31"
+
+property:
+  policies:
+    - name: "state_valid"
+      column: "property_state"
+      type: "not_null"
+    - name: "coverage_positive"
+      column: "total_building_coverage"
+      type: "positive"
+    - name: "premium_positive"
+      column: "total_premium"
+      type: "positive"
+  claims:
+    - name: "claim_id_not_null"
+      column: "claim_id"
+      type: "not_null"
+    - name: "date_of_loss_valid"
+      column: "date_of_loss"
+      type: "date_range"
+      min_date: "1970-01-01"
+      max_date: "2030-12-31"
+    - name: "paid_amount_positive"
+      column: "amount_paid_building"
+      type: "positive"
+
+workers_comp:
+  policies:
+    - name: "employer_not_null"
+      column: "employer_name"
+      type: "not_null"
+    - name: "payroll_positive"
+      column: "payroll_amount"
+      type: "positive"
+    - name: "state_code_valid"
+      column: "state_code"
+      type: "not_null"
+  claims:
+    - name: "claim_id_not_null"
+      column: "claim_id"
+      type: "not_null"
+    - name: "injury_date_valid"
+      column: "date_of_injury"
+      type: "date_range"
+      min_date: "1970-01-01"
+      max_date: "2030-12-31"
+    - name: "claim_status_valid"
+      column: "claim_status"
+      type: "in_set"
+      values: ["Open", "Closed", "Reopened", "Pending"]
+
+auto:
+  policies:
+    - name: "insured_name_not_null"
+      column: "insured_name"
+      type: "not_null"
+    - name: "vehicle_year_range"
+      column: "vehicle_year"
+      type: "range"
+      min_value: 1970
+      max_value: 2030
+    - name: "premium_positive"
+      column: "premium_amount"
+      type: "positive"
+  claims:
+    - name: "claim_id_not_null"
+      column: "claim_id"
+      type: "not_null"
+    - name: "accident_date_valid"
+      column: "date_of_accident"
+      type: "date_range"
+      min_date: "1970-01-01"
+      max_date: "2030-12-31"
+
+general_liability:
+  policies:
+    - name: "insured_name_not_null"
+      column: "insured_name"
+      type: "not_null"
+    - name: "occurrence_limit_positive"
+      column: "occurrence_limit"
+      type: "positive"
+    - name: "premium_positive"
+      column: "premium_amount"
+      type: "positive"
+  claims:
+    - name: "claim_id_not_null"
+      column: "claim_id"
+      type: "not_null"
+    - name: "claim_type_valid"
+      column: "claim_type"
+      type: "in_set"
+      values: ["BodilyInjury", "PropertyDamage", "PersonalInjury", "Advertising", "ProductLiability"]
+
+umbrella:
+  policies:
+    - name: "insured_name_not_null"
+      column: "insured_name"
+      type: "not_null"
+    - name: "umbrella_limit_positive"
+      column: "umbrella_limit"
+      type: "positive"
+    - name: "retention_positive"
+      column: "retention_amount"
+      type: "positive"
+  claims:
+    - name: "claim_id_not_null"
+      column: "claim_id"
+      type: "not_null"
+    - name: "underlying_line_valid"
+      column: "underlying_line"
+      type: "in_set"
+      values: ["Auto", "GeneralLiability", "WorkersComp", "EmployersLiability"]

@@ -1,0 +1,83 @@
+name: Databricks CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black pytest
+
+      - name: Lint with flake8
+        run: |
+          flake8 src/ --max-line-length=120 --ignore=E501,W503,E124,E127,E128
+
+      - name: Format check with black
+        run: |
+          black --check --line-length=120 src/ tests/
+
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v --tb=short
+
+  deploy-to-databricks:
+    name: Deploy to Databricks
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DATABRICKS_HOST != '' && secrets.DATABRICKS_TOKEN != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+
+      - name: Configure Databricks CLI
+        run: |
+          echo "[DEFAULT]" > ~/.databrickscfg
+          echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
+          echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
+
+      - name: Sync repo to Databricks
+        run: |
+          databricks repos update \
+            --path /Repos/kokulakrishnan@comptivia.com/insurance-data-platform \
+            --branch main
+
+      - name: Deploy workflow
+        run: |
+          databricks jobs create --json-file src/workflows/insurance_pipeline_workflow.json \
+            || databricks jobs reset --json-file src/workflows/insurance_pipeline_workflow.json
+
+      - name: Deployment complete
+        run: |
+          echo "Deployed insurance-data-platform to Databricks"
+          echo "Workflow: insurance_etl_pipeline"
+          echo "Branch: main"

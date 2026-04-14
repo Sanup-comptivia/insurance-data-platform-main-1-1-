@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Databricks
+.databricks/
+*.whl
+
+# Data files (don't commit large data)
+data/
+*.csv
+*.parquet
+*.json
+!config/*.yaml
+!src/workflows/*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.env
+credentials.json
+*.pem
+*.key
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
