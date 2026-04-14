@@ -7,7 +7,7 @@ PK: lob_key (surrogate), NK: lob_code
 from pyspark.sql import SparkSession
 from src.common.utils import generate_surrogate_key, write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SCHEMA = "gold"
 TABLE = "dim_line_of_business"
 

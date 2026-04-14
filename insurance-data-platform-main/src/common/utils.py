@@ -243,7 +243,7 @@ def write_delta_table(
     TRAINEE NOTE — Unity Catalog naming convention
     Databricks Unity Catalog uses a three-level namespace:
       catalog.schema.table
-      e.g.  insurance_catalog.bronze.bronze_property_policies_csv
+      e.g.  insurance_catalog_sanup.bronze.bronze_property_policies_csv
 
     This is analogous to a traditional database's:
       database.schema.table

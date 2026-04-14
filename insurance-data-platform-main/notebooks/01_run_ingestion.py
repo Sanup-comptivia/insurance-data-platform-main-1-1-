@@ -170,7 +170,7 @@ semi.ingest_all()
 # MAGIC %sql
 # MAGIC -- List all tables currently in the Bronze schema
 # MAGIC -- Expected: ~18 tables (10 CSV + 8 JSON sources)
-# MAGIC SHOW TABLES IN insurance_catalog.bronze;
+# MAGIC SHOW TABLES IN insurance_catalog_sanup.bronze;
 
 # COMMAND ----------
 
@@ -179,12 +179,12 @@ semi.ingest_all()
 # rather than using a bare except. This way:
 #   - Missing tables print a warning and we continue
 #   - Unexpected errors (cluster issues, permissions) are re-raised so we notice them
-bronze_tables = spark.sql("SHOW TABLES IN insurance_catalog.bronze").collect()
+bronze_tables = spark.sql("SHOW TABLES IN insurance_catalog_sanup.bronze").collect()
 print(f"\nBronze tables created: {len(bronze_tables)}")
 
 for t in bronze_tables:
     try:
-        count = spark.table(f"insurance_catalog.bronze.{t.tableName}").count()
+        count = spark.table(f"insurance_catalog_sanup.bronze.{t.tableName}").count()
         print(f"  {t.tableName}: {count:,} rows")
     except AnalysisException as ae:
         if "TABLE_OR_VIEW_NOT_FOUND" in str(ae):

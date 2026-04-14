@@ -13,12 +13,12 @@
 # Unity Catalog settings
 # -----------------------------------------------------------------------------
 # Unity Catalog uses a three-level namespace:  catalog.schema.table
-# For example: insurance_catalog.bronze.property_claims
+# For example: insurance_catalog_sanup.bronze.property_claims
 # The "catalog" is the top-level container (like a database server), a "schema"
 # groups related tables (bronze/silver/gold layers), and each table lives inside
 # a schema.  This mirrors the Medallion Architecture used in Databricks.
 catalog:
-  name: "insurance_catalog"
+  name: "insurance_catalog_sanup"
   schemas:
     # Bronze: Raw data ingested as-is from source systems. No transformations.
     #         Think of it as a "landing zone" — data fidelity is the priority.
@@ -43,10 +43,10 @@ catalog:
 # resume from the last successful point after a failure — this is how we get
 # exactly-once processing guarantees.
 storage:
-  raw_landing_zone: "/Volumes/insurance_catalog/bronze/raw_data"
-  bronze_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/bronze"
-  silver_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/silver"
-  gold_checkpoint: "/Volumes/insurance_catalog/bronze/checkpoints/gold"
+  raw_landing_zone: "/Volumes/insurance_catalog_sanup/bronze/raw_data"
+  bronze_checkpoint: "/Volumes/insurance_catalog_sanup/bronze/checkpoints/bronze"
+  silver_checkpoint: "/Volumes/insurance_catalog_sanup/bronze/checkpoints/silver"
+  gold_checkpoint: "/Volumes/insurance_catalog_sanup/bronze/checkpoints/gold"
 
 # -----------------------------------------------------------------------------
 # Data source URLs

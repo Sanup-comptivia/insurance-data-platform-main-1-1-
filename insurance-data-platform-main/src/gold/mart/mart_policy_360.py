@@ -40,7 +40,7 @@ Usage:
     build_mart_policy_360(spark)
 
     # Query the mart
-    spark.sql("SELECT * FROM insurance_catalog.gold.mart_policy_360 WHERE policy_id = 'AUTO-0000000123'")
+    spark.sql("SELECT * FROM insurance_catalog_sanup.gold.mart_policy_360 WHERE policy_id = 'AUTO-0000000123'")
 """
 
 from pyspark.sql import SparkSession
@@ -48,7 +48,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType
 from src.common.utils import write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 GOLD = "gold"
 SILVER = "silver"
 TABLE = "mart_policy_360"

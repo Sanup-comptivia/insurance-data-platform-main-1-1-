@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from src.common.utils import generate_surrogate_key, deduplicate, write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SILVER = "silver"
 GOLD = "gold"
 TABLE = "dim_agent"

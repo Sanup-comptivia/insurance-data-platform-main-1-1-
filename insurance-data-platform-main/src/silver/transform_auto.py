@@ -37,7 +37,7 @@ from pyspark.sql.types import IntegerType, DecimalType
 from src.common.utils import standardize_column_names, deduplicate, write_delta_table
 from src.common.data_quality import DataQualityChecker
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 BRONZE = "bronze"
 SILVER = "silver"
 

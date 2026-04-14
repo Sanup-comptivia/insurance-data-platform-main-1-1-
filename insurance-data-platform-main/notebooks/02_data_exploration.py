@@ -41,17 +41,17 @@
 # MAGIC -- TRAINEE NOTE: Each SELECT reads a different table — this query runs
 # MAGIC -- 6 table scans. For a large number of tables, a dynamic query using
 # MAGIC -- INFORMATION_SCHEMA or a Python loop would be more maintainable.
-# MAGIC SELECT 'bronze_property_policies_csv' AS table_name, COUNT(*) AS row_count FROM insurance_catalog.bronze.bronze_property_policies_csv
+# MAGIC SELECT 'bronze_property_policies_csv' AS table_name, COUNT(*) AS row_count FROM insurance_catalog_sanup.bronze.bronze_property_policies_csv
 # MAGIC UNION ALL
-# MAGIC SELECT 'bronze_property_claims_csv', COUNT(*) FROM insurance_catalog.bronze.bronze_property_claims_csv
+# MAGIC SELECT 'bronze_property_claims_csv', COUNT(*) FROM insurance_catalog_sanup.bronze.bronze_property_claims_csv
 # MAGIC UNION ALL
-# MAGIC SELECT 'bronze_workers_comp_policies_csv', COUNT(*) FROM insurance_catalog.bronze.bronze_workers_comp_policies_csv
+# MAGIC SELECT 'bronze_workers_comp_policies_csv', COUNT(*) FROM insurance_catalog_sanup.bronze.bronze_workers_comp_policies_csv
 # MAGIC UNION ALL
-# MAGIC SELECT 'bronze_auto_policies_csv', COUNT(*) FROM insurance_catalog.bronze.bronze_auto_policies_csv
+# MAGIC SELECT 'bronze_auto_policies_csv', COUNT(*) FROM insurance_catalog_sanup.bronze.bronze_auto_policies_csv
 # MAGIC UNION ALL
-# MAGIC SELECT 'bronze_general_liability_policies_csv', COUNT(*) FROM insurance_catalog.bronze.bronze_general_liability_policies_csv
+# MAGIC SELECT 'bronze_general_liability_policies_csv', COUNT(*) FROM insurance_catalog_sanup.bronze.bronze_general_liability_policies_csv
 # MAGIC UNION ALL
-# MAGIC SELECT 'bronze_umbrella_policies_csv', COUNT(*) FROM insurance_catalog.bronze.bronze_umbrella_policies_csv
+# MAGIC SELECT 'bronze_umbrella_policies_csv', COUNT(*) FROM insurance_catalog_sanup.bronze.bronze_umbrella_policies_csv
 # MAGIC ORDER BY table_name;
 
 # COMMAND ----------
@@ -89,17 +89,17 @@
 # MAGIC   COUNT(*) AS total,
 # MAGIC   SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END) AS valid,
 # MAGIC   ROUND(SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS validity_pct
-# MAGIC FROM insurance_catalog.silver.silver_property_policies
+# MAGIC FROM insurance_catalog_sanup.silver.silver_property_policies
 # MAGIC UNION ALL
 # MAGIC SELECT 'silver_auto_policies', COUNT(*),
 # MAGIC   SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END),
 # MAGIC   ROUND(SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2)
-# MAGIC FROM insurance_catalog.silver.silver_auto_policies
+# MAGIC FROM insurance_catalog_sanup.silver.silver_auto_policies
 # MAGIC UNION ALL
 # MAGIC SELECT 'silver_workers_comp_policies', COUNT(*),
 # MAGIC   SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END),
 # MAGIC   ROUND(SUM(CASE WHEN _is_valid THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2)
-# MAGIC FROM insurance_catalog.silver.silver_workers_comp_policies
+# MAGIC FROM insurance_catalog_sanup.silver.silver_workers_comp_policies
 # MAGIC ORDER BY table_name;
 
 # COMMAND ----------
@@ -127,18 +127,18 @@
 # MAGIC %sql
 # MAGIC -- All Gold tables in one summary view.
 # MAGIC -- Includes both dimensions and facts for a complete picture.
-# MAGIC SELECT 'dim_date' AS dimension, COUNT(*) AS row_count FROM insurance_catalog.gold.dim_date
-# MAGIC UNION ALL SELECT 'dim_line_of_business', COUNT(*) FROM insurance_catalog.gold.dim_line_of_business
-# MAGIC UNION ALL SELECT 'dim_insured', COUNT(*) FROM insurance_catalog.gold.dim_insured
-# MAGIC UNION ALL SELECT 'dim_location', COUNT(*) FROM insurance_catalog.gold.dim_location
-# MAGIC UNION ALL SELECT 'dim_agent', COUNT(*) FROM insurance_catalog.gold.dim_agent
-# MAGIC UNION ALL SELECT 'dim_coverage', COUNT(*) FROM insurance_catalog.gold.dim_coverage
-# MAGIC UNION ALL SELECT 'dim_policy', COUNT(*) FROM insurance_catalog.gold.dim_policy
-# MAGIC UNION ALL SELECT 'dim_claim', COUNT(*) FROM insurance_catalog.gold.dim_claim
-# MAGIC UNION ALL SELECT 'fact_premium', COUNT(*) FROM insurance_catalog.gold.fact_premium
-# MAGIC UNION ALL SELECT 'fact_claim_transaction', COUNT(*) FROM insurance_catalog.gold.fact_claim_transaction
-# MAGIC UNION ALL SELECT 'fact_policy_transaction', COUNT(*) FROM insurance_catalog.gold.fact_policy_transaction
-# MAGIC UNION ALL SELECT 'mart_policy_360', COUNT(*) FROM insurance_catalog.gold.mart_policy_360
+# MAGIC SELECT 'dim_date' AS dimension, COUNT(*) AS row_count FROM insurance_catalog_sanup.gold.dim_date
+# MAGIC UNION ALL SELECT 'dim_line_of_business', COUNT(*) FROM insurance_catalog_sanup.gold.dim_line_of_business
+# MAGIC UNION ALL SELECT 'dim_insured', COUNT(*) FROM insurance_catalog_sanup.gold.dim_insured
+# MAGIC UNION ALL SELECT 'dim_location', COUNT(*) FROM insurance_catalog_sanup.gold.dim_location
+# MAGIC UNION ALL SELECT 'dim_agent', COUNT(*) FROM insurance_catalog_sanup.gold.dim_agent
+# MAGIC UNION ALL SELECT 'dim_coverage', COUNT(*) FROM insurance_catalog_sanup.gold.dim_coverage
+# MAGIC UNION ALL SELECT 'dim_policy', COUNT(*) FROM insurance_catalog_sanup.gold.dim_policy
+# MAGIC UNION ALL SELECT 'dim_claim', COUNT(*) FROM insurance_catalog_sanup.gold.dim_claim
+# MAGIC UNION ALL SELECT 'fact_premium', COUNT(*) FROM insurance_catalog_sanup.gold.fact_premium
+# MAGIC UNION ALL SELECT 'fact_claim_transaction', COUNT(*) FROM insurance_catalog_sanup.gold.fact_claim_transaction
+# MAGIC UNION ALL SELECT 'fact_policy_transaction', COUNT(*) FROM insurance_catalog_sanup.gold.fact_policy_transaction
+# MAGIC UNION ALL SELECT 'mart_policy_360', COUNT(*) FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC ORDER BY dimension;
 
 # COMMAND ----------
@@ -175,8 +175,8 @@
 # MAGIC   ROUND(SUM(fp.written_premium), 2) AS total_written_premium,
 # MAGIC   ROUND(AVG(fp.written_premium), 2) AS avg_premium,
 # MAGIC   ROUND(SUM(fp.net_premium), 2) AS total_net_premium
-# MAGIC FROM insurance_catalog.gold.fact_premium fp
-# MAGIC JOIN insurance_catalog.gold.dim_line_of_business lob ON fp.lob_key = lob.lob_key
+# MAGIC FROM insurance_catalog_sanup.gold.fact_premium fp
+# MAGIC JOIN insurance_catalog_sanup.gold.dim_line_of_business lob ON fp.lob_key = lob.lob_key
 # MAGIC GROUP BY lob.lob_name
 # MAGIC ORDER BY total_written_premium DESC;
 
@@ -213,7 +213,7 @@
 # MAGIC   SUM(m.total_claims_count) AS total_claims,
 # MAGIC   ROUND(AVG(m.loss_ratio), 4) AS avg_loss_ratio,
 # MAGIC   ROUND(SUM(m.total_paid_amount), 2) AS total_paid
-# MAGIC FROM insurance_catalog.gold.mart_policy_360 m
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360 m
 # MAGIC WHERE m.total_claims_count > 0  -- Only policies that have had at least one claim
 # MAGIC GROUP BY m.lob_name
 # MAGIC ORDER BY total_claims DESC;

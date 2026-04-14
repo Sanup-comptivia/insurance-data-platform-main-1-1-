@@ -181,7 +181,7 @@ UmbrellaTransformer(spark).transform_all()
 # MAGIC If valid << total, investigate which checks are failing:
 # MAGIC ```sql
 # MAGIC SELECT _dq_issues, COUNT(*) as cnt
-# MAGIC FROM insurance_catalog.silver.silver_property_policies
+# MAGIC FROM insurance_catalog_sanup.silver.silver_property_policies
 # MAGIC WHERE NOT _is_valid
 # MAGIC GROUP BY _dq_issues ORDER BY cnt DESC;
 # MAGIC ```
@@ -190,7 +190,7 @@ UmbrellaTransformer(spark).transform_all()
 
 # MAGIC %sql
 # MAGIC -- List all Silver tables — confirm expected 10 tables created
-# MAGIC SHOW TABLES IN insurance_catalog.silver;
+# MAGIC SHOW TABLES IN insurance_catalog_sanup.silver;
 
 # COMMAND ----------
 
@@ -198,12 +198,12 @@ UmbrellaTransformer(spark).transform_all()
 # TRAINEE NOTE: We dynamically loop over all Silver tables rather than
 # hardcoding each table name. This means if new LOBs are added in the future,
 # the verification loop automatically picks them up without code changes.
-silver_tables = spark.sql("SHOW TABLES IN insurance_catalog.silver").collect()
+silver_tables = spark.sql("SHOW TABLES IN insurance_catalog_sanup.silver").collect()
 print(f"\nSilver tables: {len(silver_tables)}")
 for t in silver_tables:
-    count = spark.table(f"insurance_catalog.silver.{t.tableName}").count()
+    count = spark.table(f"insurance_catalog_sanup.silver.{t.tableName}").count()
     # Count valid rows: filter where _is_valid = True
-    valid = spark.table(f"insurance_catalog.silver.{t.tableName}").filter("_is_valid = true").count()
+    valid = spark.table(f"insurance_catalog_sanup.silver.{t.tableName}").filter("_is_valid = true").count()
     validity_pct = round(valid / count * 100, 1) if count > 0 else 0
     print(f"  {t.tableName}: {count:,} rows ({valid:,} valid = {validity_pct}%)")
 

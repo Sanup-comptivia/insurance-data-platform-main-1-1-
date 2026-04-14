@@ -53,7 +53,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from src.common.utils import write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SCHEMA = "gold"
 TABLE = "dim_date"
 

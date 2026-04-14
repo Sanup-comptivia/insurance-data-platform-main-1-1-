@@ -39,7 +39,7 @@ from src.common.utils import add_metadata_columns, write_delta_table
 # CATALOG and SCHEMA are defined once here so that if the catalog or schema
 # name ever changes, you only need to update it in one place (not scattered
 # across many function calls). This is the "DRY" principle: Don't Repeat Yourself.
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SCHEMA = "bronze"
 
 
@@ -52,7 +52,7 @@ class BronzeStructuredIngestion:
     function call. It also groups related methods together logically.
     """
 
-    def __init__(self, spark: SparkSession, raw_base_path: str = "/Volumes/insurance_catalog/bronze/raw_data"):
+    def __init__(self, spark: SparkSession, raw_base_path: str = "/Volumes/insurance_catalog_sanup/bronze/raw_data"):
         self.spark = spark
         # raw_base is the root folder in cloud storage (ADLS/S3/GCS) where
         # all raw source files are dropped before ingestion.

@@ -79,7 +79,7 @@ class PublicDataDownloader:
           cas_product_liability     : CAS product liability = GL (CSV)
         """
         return {
-            "storage": {"raw_landing_zone": "/Volumes/insurance_catalog/bronze/raw_data"},
+            "storage": {"raw_landing_zone": "/Volumes/insurance_catalog_sanup/bronze/raw_data"},
             "data_sources": {
                 # ---- FEMA NFIP API sources (JSON format) ----
                 "fema_nfip_claims": {

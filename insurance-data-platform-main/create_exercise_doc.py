@@ -347,7 +347,7 @@ add_code_block(
     "  Ingesting: bronze_professional_liability_csv\n"
     "    Source: /mnt/insurance-data/raw/professional_liability/synthetic_policies_claims\n"
     "    Rows: 100,000\n"
-    "    Table: insurance_catalog.bronze.bronze_professional_liability_csv"
+    "    Table: insurance_catalog_sanup.bronze.bronze_professional_liability_csv"
 )
 
 doc.add_page_break()
@@ -527,7 +527,7 @@ steps = [
     "Create dim_profession.py following the pattern of dim_line_of_business.py (it is a reference/static dimension).",
     "Hardcode the reference data: 8\u201310 profession types with their categories and severity ratings.",
     'Generate surrogate keys using: generate_surrogate_key(df, ["profession_type", "license_state"]).',
-    'Write to: insurance_catalog.gold.dim_profession.',
+    'Write to: insurance_catalog_sanup.gold.dim_profession.',
 ]
 for i, s in enumerate(steps, 1):
     doc.add_paragraph(f"{i}. {s}")
@@ -927,10 +927,10 @@ add_code_block(
 doc.add_heading("Useful PySpark Commands (for debugging)", level=2)
 add_code_block(
     "# Check a table exists\n"
-    "spark.table('insurance_catalog.silver.silver_property_policies').printSchema()\n"
+    "spark.table('insurance_catalog_sanup.silver.silver_property_policies').printSchema()\n"
     "\n"
     "# Count rows\n"
-    "spark.table('insurance_catalog.silver.silver_property_policies').count()\n"
+    "spark.table('insurance_catalog_sanup.silver.silver_property_policies').count()\n"
     "\n"
     "# Check DQ flags\n"
     "df.filter(F.col('_is_valid') == False).select('_dq_issues').show(truncate=False)\n"

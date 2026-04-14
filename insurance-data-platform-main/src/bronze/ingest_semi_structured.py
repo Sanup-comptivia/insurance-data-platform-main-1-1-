@@ -35,14 +35,14 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from src.common.utils import add_metadata_columns, write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SCHEMA = "bronze"
 
 
 class BronzeSemiStructuredIngestion:
     """Ingest semi-structured (JSON/XML) files into Bronze Delta tables."""
 
-    def __init__(self, spark: SparkSession, raw_base_path: str = "/Volumes/insurance_catalog/bronze/raw_data"):
+    def __init__(self, spark: SparkSession, raw_base_path: str = "/Volumes/insurance_catalog_sanup/bronze/raw_data"):
         self.spark = spark
         self.raw_base = raw_base_path
 

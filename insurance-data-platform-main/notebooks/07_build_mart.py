@@ -45,7 +45,7 @@ if repo_root not in sys.path:
 #   4. Aggregates fact_claim_transaction by policy_key (total claims per policy)
 #   5. LEFT JOINs Silver LOB tables for LOB-specific attributes
 #   6. Computes derived fields (loss_ratio, is_active, days_until_expiry)
-#   7. Writes the wide table to insurance_catalog.gold.mart_policy_360
+#   7. Writes the wide table to insurance_catalog_sanup.gold.mart_policy_360
 #
 # This is the most compute-intensive step — it touches every Silver and Gold table.
 # On a local mode (~1GB) run, expect 3-8 minutes.
@@ -83,7 +83,7 @@ mart = build_mart_policy_360(spark)
 # MAGIC --   WHERE is_active = true AND loss_ratio > 1.0
 # MAGIC SELECT policy_id, lob_name, insured_name, insured_type,
 # MAGIC        total_written_premium, total_claims_count, loss_ratio, is_active
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC LIMIT 20;
 
 # COMMAND ----------
@@ -103,6 +103,6 @@ mart = build_mart_policy_360(spark)
 # MAGIC        ROUND(SUM(total_written_premium), 2) AS total_premium,
 # MAGIC        SUM(total_claims_count) AS total_claims,
 # MAGIC        ROUND(AVG(loss_ratio), 4) AS avg_loss_ratio
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC GROUP BY lob_name
 # MAGIC ORDER BY total_premium DESC;
