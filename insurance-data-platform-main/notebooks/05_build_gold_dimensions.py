@@ -279,7 +279,7 @@ dims = ["dim_date", "dim_line_of_business", "dim_insured", "dim_location",
 print("\nGold Dimension Summary:")
 for d in dims:
     try:
-        count = spark.table(f"insurance_catalog.gold.{d}").count()
+        count = spark.table(f"insurance_catalog_sanup.gold.{d}").count()
         print(f"  {d}: {count:,} rows")
     except Exception as e:
         print(f"  {d}: ERROR — {e}")

@@ -14,28 +14,31 @@
 # MAGIC
 # MAGIC **Our three schemas follow the Medallion Architecture:**
 # MAGIC ```
-# MAGIC insurance_catalog
+# MAGIC insurance_catalog_sanup
 # MAGIC ├── bronze   ← Raw landing zone: data arrives here first, untouched
 # MAGIC ├── silver   ← Cleansed, typed, deduplicated, DQ-flagged data
 # MAGIC └── gold     ← Analytics-ready star schema + data mart
 # MAGIC ```
 # MAGIC
 # MAGIC **IMPORTANT prerequisite:**
-# MAGIC The catalog `insurance_catalog` must be created via the Databricks UI BEFORE
+# MAGIC The catalog `insurance_catalog_sanup` must be created via the Databricks UI BEFORE
 # MAGIC running this notebook:
-# MAGIC > Catalog Explorer → + Add → Add a catalog → Name: `insurance_catalog`
+# MAGIC > Catalog Explorer → + Add → Add a catalog → Name: `insurance_catalog_sanup`
 # MAGIC
 # MAGIC On most Databricks workspaces, `CREATE CATALOG` via SQL is restricted to
 # MAGIC admins. Creating it through the UI is the standard approach for trainees.
 
 # COMMAND ----------
-
+# MAGIC %sql
+CREATE CATALOG IF NOT EXISTS insurance_catalog_sanup MANAGED LOCATION 's3://databricks-storage-7474650621272587/unity-catalog/7474650621272587'
+ 
+# COMMAND ----------
 # TRAINEE NOTE — USE CATALOG sets the default catalog for the session.
 # After this, all SQL commands that reference a schema (e.g. bronze, silver)
-# will automatically use insurance_catalog.bronze, insurance_catalog.silver, etc.
+# will automatically use insurance_catalog_sanup.bronze, insurance_catalog_sanup.silver, etc.
 # Without this, you would need to write the full three-part name every time.
-spark.sql("USE CATALOG insurance_catalog")
-print("Using catalog: insurance_catalog")
+spark.sql("USE CATALOG insurance_catalog_sanup")
+print("Using catalog: insurance_catalog_sanup")
 
 # COMMAND ----------
 
@@ -44,7 +47,7 @@ print("Using catalog: insurance_catalog")
 # MAGIC -- COMMENT is optional metadata stored in the catalog — useful for
 # MAGIC -- data discovery tools (Unity Catalog Explorer, data lineage tools).
 # MAGIC -- IF NOT EXISTS: safe to re-run — won't throw an error if already created.
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.bronze
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.bronze
 # MAGIC COMMENT 'Raw landing zone - no transformations applied';
 
 # COMMAND ----------
@@ -53,7 +56,7 @@ print("Using catalog: insurance_catalog")
 # MAGIC -- Create the Silver schema.
 # MAGIC -- Silver holds data that has been cleansed, typed, and quality-checked.
 # MAGIC -- DQ flags (_is_valid, _dq_issues) are present on every Silver table.
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.silver
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.silver
 # MAGIC COMMENT 'Cleansed, typed, deduplicated data with DQ flags';
 
 # COMMAND ----------
@@ -62,7 +65,7 @@ print("Using catalog: insurance_catalog")
 # MAGIC -- Create the Gold schema.
 # MAGIC -- Gold holds the star schema (dim + fact tables) and the data mart.
 # MAGIC -- This is what BI tools and dashboards connect to.
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.gold
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.gold
 # MAGIC COMMENT 'Normalized star schema dimensions, facts, and data mart';
 
 # COMMAND ----------
@@ -70,13 +73,13 @@ print("Using catalog: insurance_catalog")
 # MAGIC %sql
 # MAGIC -- Databricks Serverless does not allow arbitrary writes to /mnt or DBFS paths.
 # MAGIC -- We create Unity Catalog Volumes instead and store raw files/checkpoints there.
-# MAGIC CREATE VOLUME IF NOT EXISTS insurance_catalog.bronze.raw_data
+# MAGIC CREATE VOLUME IF NOT EXISTS insurance_catalog_sanup.bronze.raw_data
 # MAGIC COMMENT 'Raw landing-zone files for synthetic and public source data';
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE VOLUME IF NOT EXISTS insurance_catalog.bronze.checkpoints
+# MAGIC CREATE VOLUME IF NOT EXISTS insurance_catalog_sanup.bronze.checkpoints
 # MAGIC COMMENT 'Checkpoint files for Bronze, Silver, and Gold processing';
 
 # COMMAND ----------
@@ -84,7 +87,7 @@ print("Using catalog: insurance_catalog")
 # MAGIC %sql
 # MAGIC -- Verify all three schemas were created successfully.
 # MAGIC -- Expected output: bronze, silver, gold (plus any pre-existing schemas like 'default')
-# MAGIC SHOW SCHEMAS IN insurance_catalog;
+# MAGIC SHOW SCHEMAS IN insurance_catalog_sanup;
 
 # COMMAND ----------
 
@@ -93,7 +96,7 @@ print("Using catalog: insurance_catalog")
 # both %sql cells and spark.sql() calls can be used interchangeably in notebooks.
 # In production pipeline code (src/ modules) we always use spark.sql() or
 # PySpark DataFrame API, never %sql (which is notebook-only syntax).
-spark.sql("USE CATALOG insurance_catalog")
+spark.sql("USE CATALOG insurance_catalog_sanup")
 schemas = spark.sql("SHOW SCHEMAS").collect()
 print("Schemas created:")
 for s in schemas:

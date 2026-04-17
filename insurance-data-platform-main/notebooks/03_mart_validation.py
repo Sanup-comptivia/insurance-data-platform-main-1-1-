@@ -32,8 +32,8 @@
 # Constants used throughout the validation checks.
 # TRAINEE NOTE: Defining these at the top makes the notebook easy to
 # modify if the catalog/schema names ever change — update here once.
-MART_TABLE = "insurance_catalog.gold.mart_policy_360"
-GOLD_SCHEMA = "insurance_catalog.gold"
+MART_TABLE = "insurance_catalog_sanup.gold.mart_policy_360"
+GOLD_SCHEMA = "insurance_catalog_sanup.gold"
 
 # COMMAND ----------
 
@@ -258,7 +258,7 @@ print("PASS: Premium/claims sanity checks passed")
 # MAGIC   umb_umbrella_limit,
 # MAGIC   property_construction_type, property_building_value,
 # MAGIC   is_active, days_until_expiry
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC WHERE policy_id = 'AUTO-0000000001'
 # MAGIC LIMIT 1;
 

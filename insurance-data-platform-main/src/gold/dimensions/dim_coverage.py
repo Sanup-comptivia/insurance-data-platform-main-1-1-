@@ -7,7 +7,7 @@ PK: coverage_key (surrogate), NK: coverage_id
 from pyspark.sql import SparkSession
 from src.common.utils import generate_surrogate_key, write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 GOLD = "gold"
 TABLE = "dim_coverage"
 

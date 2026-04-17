@@ -54,7 +54,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType
 from src.common.utils import generate_surrogate_key, write_delta_table
 
-CATALOG = "insurance_catalog"
+CATALOG = "insurance_catalog_sanup"
 SILVER = "silver"
 GOLD = "gold"
 TABLE = "fact_claim_transaction"

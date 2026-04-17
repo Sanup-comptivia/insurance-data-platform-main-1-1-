@@ -59,9 +59,9 @@ GENERATION_MODE = "local"
 # MAGIC ## Step 1: Setup Unity Catalog
 # MAGIC
 # MAGIC **TRAINEE NOTE — Prerequisites before running this step:**
-# MAGIC 1. The `insurance_catalog` must be created FIRST via the Databricks UI:
-# MAGIC    Catalog Explorer → + Add → Add a catalog → Name: `insurance_catalog`
-# MAGIC 2. You must have CREATE SCHEMA privilege on `insurance_catalog`
+# MAGIC 1. The `insurance_catalog_sanup` must be created FIRST via the Databricks UI:
+# MAGIC    Catalog Explorer → + Add → Add a catalog → Name: `insurance_catalog_sanup`
+# MAGIC 2. You must have CREATE SCHEMA privilege on `insurance_catalog_sanup`
 # MAGIC 3. The catalog is created once; subsequent runs skip this step (IF NOT EXISTS)
 # MAGIC
 # MAGIC **Three schemas (databases) are created:**
@@ -75,36 +75,36 @@ GENERATION_MODE = "local"
 
 # TRAINEE NOTE: USE CATALOG sets the default catalog for subsequent SQL commands.
 # Without this, SQL commands would need fully qualified names (catalog.schema.table).
-spark.sql("USE CATALOG insurance_catalog")
-print("Using catalog: insurance_catalog")
+spark.sql("USE CATALOG insurance_catalog_sanup")
+print("Using catalog: insurance_catalog_sanup")
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC -- Raw landing zone: data lands here with no transformation
 # MAGIC -- IF NOT EXISTS: safe to re-run; won't fail if schema already exists
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.bronze
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.bronze
 # MAGIC COMMENT 'Raw landing zone';
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC -- Cleansed and typed data: types cast, DQ flags added, deduplication done
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.silver
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.silver
 # MAGIC COMMENT 'Cleansed and typed data';
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC -- Analytics-ready: star schema (dim + fact tables) + denormalized data mart
-# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog.gold
+# MAGIC CREATE SCHEMA IF NOT EXISTS insurance_catalog_sanup.gold
 # MAGIC COMMENT 'Business-ready star schema and data mart';
 
 # COMMAND ----------
 
 print("Step 1 COMPLETE: Unity Catalog schemas created")
 # Show all schemas to confirm creation was successful
-spark.sql("SHOW SCHEMAS IN insurance_catalog").show()
+spark.sql("SHOW SCHEMAS IN insurance_catalog_sanup").show()
 
 # COMMAND ----------
 
@@ -167,7 +167,7 @@ BronzeSemiStructuredIngestion(spark).ingest_all()
 
 # COMMAND ----------
 
-bronze_tables = spark.sql("SHOW TABLES IN insurance_catalog.bronze").collect()
+bronze_tables = spark.sql("SHOW TABLES IN insurance_catalog_sanup.bronze").collect()
 print(f"Step 3 COMPLETE: {len(bronze_tables)} Bronze tables created")
 
 # COMMAND ----------
@@ -215,7 +215,7 @@ UmbrellaTransformer(spark).transform_all()
 
 # COMMAND ----------
 
-silver_tables = spark.sql("SHOW TABLES IN insurance_catalog.silver").collect()
+silver_tables = spark.sql("SHOW TABLES IN insurance_catalog_sanup.silver").collect()
 print(f"Step 4 COMPLETE: {len(silver_tables)} Silver tables created")
 
 # COMMAND ----------
@@ -372,10 +372,10 @@ print("INSURANCE DATA PLATFORM — PIPELINE EXECUTION SUMMARY")
 print("=" * 70)
 
 for layer, schema in [("BRONZE", "bronze"), ("SILVER", "silver"), ("GOLD", "gold")]:
-    tables = spark.sql(f"SHOW TABLES IN insurance_catalog.{schema}").collect()
+    tables = spark.sql(f"SHOW TABLES IN insurance_catalog_sanup.{schema}").collect()
     print(f"\n{layer} Layer ({len(tables)} tables):")
     for t in tables:
-        count = spark.table(f"insurance_catalog.{schema}.{t.tableName}").count()
+        count = spark.table(f"insurance_catalog_sanup.{schema}.{t.tableName}").count()
         print(f"  {t.tableName}: {count:,} rows")
 
 print("\n" + "=" * 70)
@@ -396,19 +396,19 @@ print("=" * 70)
 # MAGIC ```sql
 # MAGIC -- Top 10 most expensive claims
 # MAGIC SELECT policy_id, insured_name, lob_name, total_paid_amount
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC ORDER BY total_paid_amount DESC LIMIT 10;
 # MAGIC
 # MAGIC -- Premium by state and LOB
 # MAGIC SELECT policy_state, lob_name, COUNT(*) as policies,
 # MAGIC        SUM(total_written_premium) as total_premium
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC GROUP BY policy_state, lob_name
 # MAGIC ORDER BY total_premium DESC;
 # MAGIC
 # MAGIC -- High loss ratio policies (potential problem accounts)
 # MAGIC SELECT policy_id, insured_name, lob_name, loss_ratio, total_claims_count
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC WHERE loss_ratio > 1.0
 # MAGIC ORDER BY loss_ratio DESC;
 # MAGIC ```
@@ -419,5 +419,5 @@ print("=" * 70)
 # MAGIC -- Look up any policy — see everything about it in one row
 # MAGIC SELECT policy_id, lob_name, insured_name,
 # MAGIC        total_written_premium, total_claims_count, loss_ratio, is_active
-# MAGIC FROM insurance_catalog.gold.mart_policy_360
+# MAGIC FROM insurance_catalog_sanup.gold.mart_policy_360
 # MAGIC LIMIT 10;

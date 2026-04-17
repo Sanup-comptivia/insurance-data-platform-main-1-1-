@@ -33,6 +33,9 @@ Usage (Databricks notebook):
 
 import requests
 import yaml
+import pandas as pd
+import numpy as np
+import time
 from pyspark.sql import SparkSession
 
 
@@ -79,7 +82,7 @@ class PublicDataDownloader:
           cas_product_liability     : CAS product liability = GL (CSV)
         """
         return {
-            "storage": {"raw_landing_zone": "/Volumes/insurance_catalog/bronze/raw_data"},
+            "storage": {"raw_landing_zone": "/Volumes/insurance_catalog_sanup/bronze/raw_data"},
             "data_sources": {
                 # ---- FEMA NFIP API sources (JSON format) ----
                 "fema_nfip_claims": {
@@ -289,9 +292,22 @@ class PublicDataDownloader:
                 break
 
         if all_records:
-            # Convert the list of dicts to a Spark DataFrame and write as JSON
-            # spark.createDataFrame(list_of_dicts) infers the schema from the data
-            df = self.spark.createDataFrame(all_records)
+            # Convert to pandas first to handle mixed int/float types across
+            # API pages. Pandas auto-promotes mixed int/float columns to float,
+            # avoiding Spark's CANNOT_MERGE_TYPE error when schema inference
+            # encounters LongType in one record and DoubleType in another.
+            pdf = pd.DataFrame(all_records)
+ 
+            # FIX: Force all numeric columns to float64 and coerce object columns
+            # that contain mixed Python int/float values. Without this, pandas
+            # may leave columns as 'object' dtype when nulls are mixed with ints,
+            # and spark.createDataFrame() fails on schema inference.
+            for col in pdf.columns:
+                pdf[col] = pd.to_numeric(pdf[col], errors="ignore")
+            for col in pdf.select_dtypes(include=[np.number]).columns:
+                pdf[col] = pdf[col].astype("float64")
+ 
+            df = self.spark.createDataFrame(pdf)
             df.write.mode("overwrite").json(output_dir)
             print(f"  -> Total records downloaded: {len(all_records)}")
         else:

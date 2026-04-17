@@ -166,7 +166,7 @@ facts = ["fact_premium", "fact_claim_transaction", "fact_policy_transaction"]
 print("\nGold Fact Summary:")
 for f in facts:
     try:
-        count = spark.table(f"insurance_catalog.gold.{f}").count()
+        count = spark.table(f"insurance_catalog_sanup.gold.{f}").count()
         print(f"  {f}: {count:,} rows")
     except Exception as e:
         print(f"  {f}: ERROR — {e}")

@@ -20,21 +20,21 @@ Raw Data Sources (FEMA, CAS, Kaggle, Synthetic)
         ▼
 ┌─────────────────────────────┐
 │   BRONZE (Raw Landing)      │  Schema-on-read, all formats
-│   insurance_catalog.bronze  │  Metadata: _ingestion_timestamp,
+│   insurance_catalog_sanup.bronze  │  Metadata: _ingestion_timestamp,
 │                             │  _source_file, _batch_id
 └─────────┬───────────────────┘
           │
           ▼
 ┌─────────────────────────────┐
 │   SILVER (Cleansed)         │  Type casting, dedup, DQ flags
-│   insurance_catalog.silver  │  snake_case standardization
+│   insurance_catalog_sanup.silver  │  snake_case standardization
 │                             │  _is_valid, _dq_issues columns
 └─────────┬───────────────────┘
           │
           ▼
 ┌─────────────────────────────┐
 │   GOLD (Business-Ready)     │  3NF Normalized Star Schema
-│   insurance_catalog.gold    │  8 Dimensions + 3 Facts
+│   insurance_catalog_sanup.gold    │  8 Dimensions + 3 Facts
 │                             │  + mart_policy_360
 └─────────────────────────────┘
 ```
@@ -123,7 +123,7 @@ gen.generate_all()
 
 ### 4. Query the Mart
 ```sql
-SELECT * FROM insurance_catalog.gold.mart_policy_360
+SELECT * FROM insurance_catalog_sanup.gold.mart_policy_360
 WHERE policy_id = 'AUTO-0000000001';
 ```
 

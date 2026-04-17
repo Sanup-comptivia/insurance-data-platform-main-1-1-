@@ -165,7 +165,7 @@ class SyntheticDataGenerator:
         self,
         spark: SparkSession,
         mode: str = "local",
-        output_base: str = "/Volumes/insurance_catalog/bronze/raw_data",
+        output_base: str = "/Volumes/insurance_catalog_sanup/bronze/raw_data",
     ):
         self.spark = spark
         self.mode = mode
